@@ -27,10 +27,16 @@ struct Day01: AdventDay {
     let listB = inputData.map { $0.b }.sorted()
     return zip(listA, listB).reduce(0) { $0 + abs($1.0 - $1.1) }
   }
+  
+  static func buildCounter<T:Hashable>(_ data: [T]) -> [T:Int] {
+    data.reduce(into: [:]) { $0[$1, default:0] += 1 }
+  }
 
-  // Replace this with your solution for the second part of the day's challenge.
-  func part2() -> Any {
-    // Sum the maximum entries in each set of data
-    return 2
+  func part2() -> Int {
+    let listA = inputData.map { $0.a }
+    let counterB = Self.buildCounter(inputData.map { $0.b })
+    return listA.reduce(into: 0) {
+      $0 += $1 * (counterB[$1] ?? 0)
+    }
   }
 }
