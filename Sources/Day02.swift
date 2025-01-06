@@ -18,35 +18,34 @@ struct Day02: AdventDay {
     }
   }
 
-  func isSafe(report: [Int], tolerance: Int) -> Bool {
-    var errors = 0
+  // Checks if the report is safe. Assumes the report has at least two elements.
+  func isSafe(report: [Int]) -> Bool {
+    let isDecreasing = report[1] < report[0]
     for i in 1..<report.count {
       let diff = report[i] - report[i - 1]
-      if diff == 0 || abs(diff) > 3 {
-        errors += 1
-        if errors > tolerance {
-          return false
-        }
-      }
-      if i > 1 {
-        let diffDecreasing = diff < 0
-        let prevDiffDecreasing = report[i - 1] - report[i - 2] < 0
-        if diffDecreasing != prevDiffDecreasing {
-          errors += 1
-          if errors > tolerance {
-            return false
-          }
-        }
+      if diff == 0 || abs(diff) > 3 || (diff > 0 && isDecreasing) || (diff < 0 && !isDecreasing) {
+        return false
       }
     }
     return true
   }
+  
+  func isSafeRemovingAnySingleReport(report: [Int]) -> Bool {
+    for i in report.indices {
+      var candidate = report
+      candidate.remove(at: i)
+      if (isSafe(report: candidate)) {
+        return true
+      }
+    }
+    return false
+  }
 
   func part1() -> Int {
-    inputData.filter { isSafe(report: $0, tolerance: 0) }.count
+    inputData.filter { isSafe(report: $0) }.count
   }
 
   func part2() -> Int {
-    inputData.filter { isSafe(report: $0, tolerance: 1) }.count
+    inputData.filter { isSafe(report: $0) || isSafeRemovingAnySingleReport(report: $0) }.count
   }
 }
