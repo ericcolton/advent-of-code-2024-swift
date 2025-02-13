@@ -13,19 +13,22 @@ struct Day05: AdventDay {
   private static func parseInputData(rawData: String) -> InputDataType {
     let sections = rawData.split(separator: "\n\n")
     
-    var ordering : [Int:[Int]] = [:]
+    var ordering : [Int:Set<Int>] = [:]
     // page ordering rules
     for pageOrderingRule in sections[0].split(separator: "\n") {
       let parts = pageOrderingRule.split(separator:"|")
-      let first = parts[0]
-      let second = parts[1]
-      if ordering[first] {
-        
+      if let first = Int(parts[0]), let second = Int(parts[1]) {
+        if var downstream = ordering[first] {
+          downstream.insert(second)
+        } else {
+          var downstream = Set<Int>()
+          downstream.insert(second)
+          ordering[first] = downstream
+        }
+      } else {
+        // parse error
+        assert(false)
       }
-      
-      
-      
-
     }
     
     return (pageOrderings: [], updates: [])
