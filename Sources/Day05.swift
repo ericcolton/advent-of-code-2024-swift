@@ -2,7 +2,7 @@ import Algorithms
 
 struct Day05: AdventDay {
   
-  typealias InputDataType = (pageOrderings: [(a: Int, b: Int)], updates: [[Int]])
+  typealias InputDataType = (pageOrderings: [Int:Set<Int>], updates: [[Int]])
   
   let inputData : InputDataType
   
@@ -12,26 +12,31 @@ struct Day05: AdventDay {
   
   private static func parseInputData(rawData: String) -> InputDataType {
     let sections = rawData.split(separator: "\n\n")
-    
-    var ordering : [Int:Set<Int>] = [:]
-    // page ordering rules
+
+    // parse page ordering rules
+    var pageOrderingRules : [Int:Set<Int>] = [:]
+
     for pageOrderingRule in sections[0].split(separator: "\n") {
       let parts = pageOrderingRule.split(separator:"|")
       if let first = Int(parts[0]), let second = Int(parts[1]) {
-        if var downstream = ordering[first] {
-          downstream.insert(second)
-        } else {
-          var downstream = Set<Int>()
-          downstream.insert(second)
-          ordering[first] = downstream
+        if pageOrderingRules[first] == nil {
+          pageOrderingRules[first] = Set<Int>()
         }
+        pageOrderingRules[first]!.insert(second)
       } else {
         // parse error
         assert(false)
       }
     }
     
-    return (pageOrderings: [], updates: [])
+    // parse updates
+    let updates = sections[1].split(separator: "\n").compactMap() {
+      $0.split(separator: ",").compactMap() {
+        Int($0)
+      }
+    }
+
+    return (pageOrderings: pageOrderingRules, updates: updates)
     // rawData.split(separator: "\n").compactMap {
     //   let components = $0.split(separator: " ")
     //   if components.count == 2,
