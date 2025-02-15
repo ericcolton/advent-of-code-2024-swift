@@ -43,31 +43,26 @@ struct Day05: AdventDay {
       return false
     }
     
-    if val.contains(then) {
-      return true
-    }
-    
-    for subNode in val {
-      if self.entryFollowsRules(first: subNode, then: then) {
-        return true
-      }
-    }
-    return false
+    return val.contains(then)
   }
   
   func rowFollowsRules(_ row: [Int]) -> Bool {
-    for i in 0..<(row.count - 1) {
-      if !self.entryFollowsRules(first:row[i], then:row[i+1]) {
-        return false
+    for i in 0..<row.count {
+      for j in (i + 1)..<row.count {
+        if !self.entryFollowsRules(first:row[i], then:row[j]) {
+          return false
+        }
       }
     }
     return true
   }
   
   func findRowValue(_ row: [Int]) -> Int {
-    self.rowFollowsRules(row)
-    ? row[Int(row.count / 2)]
-    : 0
+    if self.rowFollowsRules(row) {
+      return row[Int(row.count / 2)]
+    } else {
+      return 0
+    }
   }
 
   func part1() -> Int {
