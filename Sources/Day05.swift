@@ -39,15 +39,27 @@ struct Day05: AdventDay {
   }
   
   func entryFollowsRules(first: Int, then: Int) -> Bool {
-    guard let val = inputData.pageOrderingRules[first] else {
-      return false
+    if let val = inputData.pageOrderingRules[first] {
+      return val.contains(then)
     }
-    
-    return val.contains(then)
+    return false
   }
   
   func rowFollowsRules(_ row: [Int]) -> Bool {
-    for i in 0..<row.count {
+    for i in 0..<(row.count - 1) {
+      for j in (i + 1)..<row.count {
+        if !self.entryFollowsRules(first:row[i], then:row[j]) {
+          return false
+        }
+      }
+    }
+    return true
+  }
+
+
+  func findCorrectlyOrderedRow(_ oldRow: [Int]) -> [Int] {
+    var row = oldRow
+    for i in 0..<(row.count - 1) {
       for j in (i + 1)..<row.count {
         if !self.entryFollowsRules(first:row[i], then:row[j]) {
           return false
@@ -58,11 +70,19 @@ struct Day05: AdventDay {
   }
   
   func findRowValue(_ row: [Int]) -> Int {
+    self.rowFollowsRules(row)
+      ? row[Int(row.count / 2)]
+      : 0
+  }
+  
+  func findRowValueRequiringReordering(_ row: [Int]) -> Int {
     if self.rowFollowsRules(row) {
-      return row[Int(row.count / 2)]
-    } else {
       return 0
     }
+    let reorderedRow = self.findCorrectlyOrderedRow(row)
+    return reorderedRow.count > 0
+      ? reorderedRow[reorderedRow.count / 2]
+      : 0
   }
 
   func part1() -> Int {
@@ -72,11 +92,8 @@ struct Day05: AdventDay {
   }
 
   func part2() -> Int {
-    return 0
-//    let listA = inputData.map { $0.a }
-//    let counterB = Self.buildCounter(inputData.map { $0.b })
-//    return listA.reduce(into: 0) {
-//      $0 += $1 * (counterB[$1] ?? 0)
-//    }
+    return inputData.updates
+      .map() { self.findRowValueRequiringReordering($0) }
+      .reduce(0, +)
   }
 }
