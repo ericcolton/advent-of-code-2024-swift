@@ -46,9 +46,9 @@ struct Day05: AdventDay {
   }
   
   func rowFollowsRules(_ row: [Int]) -> Bool {
-    for i in 0..<(row.count - 1) {
-      for j in (i + 1)..<row.count {
-        if !self.entryFollowsRules(first:row[i], then:row[j]) {
+    for (i, earlyEntry) in row.enumerated() {
+      for laterEntry in row[(i + 1)...] {
+        if !self.entryFollowsRules(first:earlyEntry, then:laterEntry) {
           return false
         }
       }
@@ -56,17 +56,18 @@ struct Day05: AdventDay {
     return true
   }
 
-
-  func findCorrectlyOrderedRow(_ oldRow: [Int]) -> [Int] {
-    var row = oldRow
-    for i in 0..<(row.count - 1) {
-      for j in (i + 1)..<row.count {
-        if !self.entryFollowsRules(first:row[i], then:row[j]) {
-          return false
-        }
+  func findCorrectlyOrderedRow(_ origRow: [Int]) -> [Int]? {
+    var row = [origRow[0]]
+    for i in 1..<origRow.count {
+      row.append(origRow[i])
+      if self.rowFollowsRules(row) { continue }
+      for j in stride(from: i - 1, through: 0, by: -1) {
+        row.swapAt(j, j + 1)
+        if self.rowFollowsRules(row) { break }
+        if j == 0 { return nil }
       }
     }
-    return true
+    return row
   }
   
   func findRowValue(_ row: [Int]) -> Int {
@@ -79,10 +80,10 @@ struct Day05: AdventDay {
     if self.rowFollowsRules(row) {
       return 0
     }
-    let reorderedRow = self.findCorrectlyOrderedRow(row)
-    return reorderedRow.count > 0
-      ? reorderedRow[reorderedRow.count / 2]
-      : 0
+    else if let reorderedRow = self.findCorrectlyOrderedRow(row) {
+      return reorderedRow[reorderedRow.count / 2]
+    }
+    assert(false)
   }
 
   func part1() -> Int {
