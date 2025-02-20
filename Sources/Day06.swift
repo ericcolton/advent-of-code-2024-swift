@@ -2,6 +2,10 @@ import Algorithms
 
 enum Direction: Int {
   case up = 0, right, down, left
+  
+  func rotateRight() -> Direction {
+    Direction(rawValue:(rawValue + 1) % 4)!
+  }
 }
 
 struct Coordinate: Hashable {
@@ -11,57 +15,36 @@ struct Coordinate: Hashable {
 
 class Guard {
   let grid : [[Bool]]
-  let yMax : Int
-  let xMax : Int
+  let bounds: (y: Int, x: Int)
   var location : Coordinate
   var direction : Direction = .up
   var seen : Set<Coordinate>
-  var uniqueSteps: Int {
-    get { seen.count }
-  }
+  var uniqueSteps: Int { seen.count }
   
   init(start: Coordinate, grid: [[Bool]]) {
+    assert (grid.count > 0)
     self.grid = grid
-    self.yMax = grid.count - 1
-    guard self.yMax >= 0 else {
-      assert(false)
-    }
-    self.xMax = grid[0].count - 1
+    self.bounds = (y: grid.count - 1, x: grid[0].count - 1)
     self.location = start
     self.seen = Set()
   }
   
   private func inBounds(_ point: Coordinate) -> Bool {
-    point.x >= 0 && point.x <= xMax && point.y >= 0 && point.y <= yMax
+    (0...bounds.y).contains(point.y) && (0...bounds.x).contains(point.x)
   }
     
   private func nextLocation() -> Coordinate {
     switch (direction) {
-    case .up:
-      return Coordinate(y: location.y - 1, x: location.x)
-    case .down:
-      return Coordinate(y: location.y + 1, x: location.x)
-    case .left:
-      return Coordinate(y: location.y, x: location.x - 1)
-    case .right:
-      return Coordinate(y: location.y, x: location.x + 1)
+    case .up:    return Coordinate(y: location.y - 1, x: location.x)
+    case .down:  return Coordinate(y: location.y + 1, x: location.x)
+    case .left:  return Coordinate(y: location.y, x: location.x - 1)
+    case .right: return Coordinate(y: location.y, x: location.x + 1)
     }
   }
   
   private func canAdvance() -> Bool {
     let nextLoc = self.nextLocation()
-    if self.inBounds(nextLoc) {
-      return !self.grid[nextLoc.y][nextLoc.x]
-    }
-    return true
-  }
-  
-  private func rotateRight() {
-    if let newDirection = Direction(rawValue:(direction.rawValue + 1) % 4) {
-      direction = newDirection
-    } else {
-      assert(false)
-    }
+    return !self.inBounds(nextLoc) || !self.grid[nextLoc.y][nextLoc.x]
   }
   
   func advandeUntilOutofBounds() {
@@ -70,7 +53,7 @@ class Guard {
         seen.insert(location)
         location = self.nextLocation()
       } else {
-        self.rotateRight()
+        direction = direction.rotateRight()
       }
     }
   }
@@ -94,11 +77,7 @@ struct Day06: AdventDay {
         return char == "#"
       }
     }
-    
-    guard let start = start else {
-      assert(false)
-    }
-    return (start:start, grid:grid)
+    return (start:start!, grid:grid)
   }
   
 
