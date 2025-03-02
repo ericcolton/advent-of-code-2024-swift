@@ -25,16 +25,14 @@ class Guard {
   var direction : Direction = .up
   var seen : [Coordinate:Set<Direction>]
   var uniqueSteps: Int { seen.count }
-  var rotationCount : Int
   
   init(start: Coordinate, grid: [[Bool]]) {
-    assert (grid.count > 0)
+    assert (grid.count > 0 && grid[0].count > 0, "Grid cannot be empty")
     self.grid = grid
     self.bounds = (y: grid.count - 1, x: grid[0].count - 1)
     self.start = start
     self.location = start
     self.seen = [:]
-    self.rotationCount = 0
   }
   
   private func inBounds(_ point: Coordinate) -> Bool {
@@ -59,24 +57,22 @@ class Guard {
     seen[location] != nil && seen[location]!.contains(direction)
   }
   
-  func advandeWhilePossible() -> CannotAdvanceReason {
+  private func checkForEndlessLoop() -> Bool {
+    if seen[location]?.contains(direction) == true {
+      return true
+    }
+    seen[location, default:[]].insert(direction)
+    return false
+  }
+  
+  func advanceWhilePossible() -> CannotAdvanceReason {
     while self.inBounds(location) {
-      if self.canAdvance() {
-        rotationCount = 0
-        if seen[location] == nil {
-          seen[location] = Set<Direction>()
-        }
-        seen[location]!.insert(direction)
+      if self.checkForEndlessLoop() {
+        return .endlessLoop
+      } else if self.canAdvance() {
         location = self.nextLocation()
-        if self.hasFallenIntoEndlessLoop() {
-          return .endlessLoop
-        }
       } else {
         direction = direction.rotateRight()
-        if rotationCount == 4 {
-          return .endlessLoop
-        }
-        rotationCount += 1
       }
     }
     return .outOfBounds
@@ -108,33 +104,29 @@ struct Day06: AdventDay {
     return (start:start!, grid:grid)
   }
   
+  private func checkAddedBarrierFor(point: Coordinate) -> Bool {
+    var modifiedGrid = inputData.grid
+    modifiedGrid[point.y][point.x] = true
+    let aGuard = Guard(start: inputData.start, grid: modifiedGrid)
+    return aGuard.advanceWhilePossible() == .endlessLoop
+  }
+  
   private func countAddedBarriersThatLeadToEndlessLoops(barriers: [Coordinate]) -> Int {
     barriers.enumerated().filter{ (i, point) in
-    var modifiedGrid = inputData.grid
-
-
-    modifiedGrid[point.y][point.x] = true
-    let c = modifiedGrid.map() { $0.filter { $0 }.count }
-      .reduce(0, +)
-
-    let aGuard = Guard(start: inputData.start, grid: modifiedGrid)
-    let endless = aGuard.advandeWhilePossible() == .endlessLoop
-    print(i, c, endless)
-    return endless
-    //return aGuard.advandeWhilePossible() == .endlessLoop
+      self.checkAddedBarrierFor(point: point)
     }.count
   }
 
   func part1() -> Int {
     let theGuard = Guard(start: inputData.start, grid: inputData.grid)
-    let reason = theGuard.advandeWhilePossible()
+    let reason = theGuard.advanceWhilePossible()
     assert(reason == .outOfBounds)
     return theGuard.uniqueSteps
   }
 
   func part2() -> Int {
     let theGuard = Guard(start: inputData.start, grid: inputData.grid)
-    let reason = theGuard.advandeWhilePossible()
+    let reason = theGuard.advanceWhilePossible()
     assert(reason == .outOfBounds)
     return countAddedBarriersThatLeadToEndlessLoops(barriers: theGuard.visitedPoints())
   }
