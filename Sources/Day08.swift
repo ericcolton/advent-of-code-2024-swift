@@ -2,41 +2,60 @@ import Algorithms
 
 struct Day08: AdventDay {
   
-  typealias InputDataType = [(a: Int, b: Int)]
-  
-  let inputData : InputDataType
-  
-  init(data: String) {
-    inputData = Self.parseInputData(rawData: data)
+  struct Coordinate: Hashable {
+    let y: Int
+    let x: Int
   }
   
-  private static func parseInputData(rawData: String) -> InputDataType {
-    rawData.split(separator: "\n").compactMap {
-      let components = $0.split(separator: " ")
-      if components.count == 2,
-         let a = Int(components[0]),
-         let b = Int(components[1]) {
-        return (a, b)
+  typealias InputDataType = [Character:[Coordinate]]
+  
+  let inputData : InputDataType
+  let yMax : Int
+  let xMax : Int
+  
+  init(data: String) {
+    (yMax, xMax, inputData) = Self.parseInputData(rawData: data)
+  }
+
+  private static func parseInputData(rawData: String) -> (Int, Int, InputDataType) {
+    var (y, x, yMax, xMax) = (0, 0, 0, 0)
+    var lookup: InputDataType = [:]
+    for c in rawData {
+      if c == "\n" {
+        y += 1
+        x = 0
+        continue
       }
-      return nil
+      if c != "." {
+        lookup[c, default: []].append(Coordinate(y: y, x: x))
+        yMax = max(yMax, y)
+        xMax = max(xMax, x)
+      }
+      x += 1
     }
+    return (yMax, xMax, lookup)
   }
 
   func part1() -> Int {
-    let listA = inputData.map { $0.a }.sorted()
-    let listB = inputData.map { $0.b }.sorted()
-    return zip(listA, listB).reduce(0) { $0 + abs($1.0 - $1.1) }
-  }
-  
-  static func buildCounter<T:Hashable>(_ data: [T]) -> [T:Int] {
-    data.reduce(into: [:]) { $0[$1, default:0] += 1 }
+    // create anti-node map
+    // iterate i,j search within each type of signal
+    // find the diff, and extend it both directions
+    // mark those locations in the anti-node map, inc a count if needed
+    var antiNodeGrid : Set<Coordinate> = []
+    for coordinates in inputData.values {
+      for i in 0..<(coordinates.count - 1) {
+        for j in (i+1)..<coordinates.count {
+          let (iCoord, jCoord) = (coordinates[i], coordinates[j])
+          let (yDelta, xDelta) = (jCoord.y - iCoord.y, jCoord.x - iCoord.x)
+          let resonantA = (iCoord.y - yDelta, iCoord.x - xDelta)
+          let resonantB = (jCoord.y + yDelta, jCoord.x + xDelta)
+        }
+      }
+    }
+    return 0
   }
 
   func part2() -> Int {
-    let listA = inputData.map { $0.a }
-    let counterB = Self.buildCounter(inputData.map { $0.b })
-    return listA.reduce(into: 0) {
-      $0 += $1 * (counterB[$1] ?? 0)
-    }
+    return 0
   }
 }
