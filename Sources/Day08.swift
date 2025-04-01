@@ -28,31 +28,32 @@ struct Day08: AdventDay {
       }
       if c != "." {
         lookup[c, default: []].append(Coordinate(y: y, x: x))
-        yMax = max(yMax, y)
-        xMax = max(xMax, x)
       }
+      xMax = max(xMax, x)
+      yMax = max(yMax, y)
       x += 1
     }
+
     return (yMax, xMax, lookup)
   }
 
   func part1() -> Int {
-    // create anti-node map
-    // iterate i,j search within each type of signal
-    // find the diff, and extend it both directions
-    // mark those locations in the anti-node map, inc a count if needed
     var antiNodeGrid : Set<Coordinate> = []
     for coordinates in inputData.values {
       for i in 0..<(coordinates.count - 1) {
         for j in (i+1)..<coordinates.count {
           let (iCoord, jCoord) = (coordinates[i], coordinates[j])
           let (yDelta, xDelta) = (jCoord.y - iCoord.y, jCoord.x - iCoord.x)
-          let resonantA = (iCoord.y - yDelta, iCoord.x - xDelta)
-          let resonantB = (jCoord.y + yDelta, jCoord.x + xDelta)
+          for cand in [Coordinate(y: iCoord.y - yDelta, x: iCoord.x - xDelta),
+                            Coordinate(y: jCoord.y + yDelta, x: jCoord.x + xDelta)] {
+            if cand.x >= 0 && cand.x <= xMax && cand.y >= 0 && cand.y <= yMax {
+              antiNodeGrid.insert(cand)
+            }
+          }
         }
       }
     }
-    return 0
+    return antiNodeGrid.count
   }
 
   func part2() -> Int {
