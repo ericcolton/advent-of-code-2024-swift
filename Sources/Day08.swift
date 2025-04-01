@@ -17,24 +17,19 @@ struct Day08: AdventDay {
     (yMax, xMax, inputData) = Self.parseInputData(rawData: data)
   }
 
-  private static func parseInputData(rawData: String) -> (Int, Int, InputDataType) {
-    var (y, x, yMax, xMax) = (0, 0, 0, 0)
+  private static func parseInputData(rawData: String) -> (yMax: Int, xMax: Int, lookup: InputDataType) {
     var lookup: InputDataType = [:]
-    for c in rawData {
-      if c == "\n" {
-        y += 1
-        x = 0
-        continue
+    let lines = rawData.split(separator: "\n")
+    for (y, line) in lines.enumerated() {
+      for (x, c) in line.enumerated() {
+        if c != "." {
+          lookup[c, default: []].append(Coordinate(y: y, x: x))
+        }
       }
-      if c != "." {
-        lookup[c, default: []].append(Coordinate(y: y, x: x))
-      }
-      xMax = max(xMax, x)
-      yMax = max(yMax, y)
-      x += 1
     }
-
-    return (yMax, xMax, lookup)
+    return (yMax: lines.count - 1,
+            xMax: lines[0].count - 1,
+            lookup: lookup)
   }
   
   func processCoordPairDirection(_ coord: Coordinate, _ delta: Coordinate, _ antiNodes: inout Set<Coordinate>, _ extended: Bool) {
