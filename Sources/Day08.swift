@@ -36,27 +36,43 @@ struct Day08: AdventDay {
 
     return (yMax, xMax, lookup)
   }
-
-  func part1() -> Int {
-    var antiNodeGrid : Set<Coordinate> = []
-    for coordinates in inputData.values {
-      for i in 0..<(coordinates.count - 1) {
-        for j in (i+1)..<coordinates.count {
-          let (iCoord, jCoord) = (coordinates[i], coordinates[j])
-          let (yDelta, xDelta) = (jCoord.y - iCoord.y, jCoord.x - iCoord.x)
-          for cand in [Coordinate(y: iCoord.y - yDelta, x: iCoord.x - xDelta),
-                            Coordinate(y: jCoord.y + yDelta, x: jCoord.x + xDelta)] {
-            if cand.x >= 0 && cand.x <= xMax && cand.y >= 0 && cand.y <= yMax {
-              antiNodeGrid.insert(cand)
-            }
-          }
+  
+  func processCoordPairDirection(_ coord: Coordinate, _ delta: Coordinate, _ antiNodes: inout Set<Coordinate>, _ extended: Bool) {
+    var cand = coord
+    while true {
+      cand = Coordinate(y: cand.y - delta.y, x: cand.x - delta.x)
+      if cand.x < 0 || cand.x > xMax || cand.y < 0 || cand.y > yMax {
+        break
+      }
+      antiNodes.insert(cand)
+      if !extended { break }
+    }
+  }
+  
+  func processCoordPair(a: Coordinate, b: Coordinate, antiNodes: inout Set<Coordinate>, extended: Bool) {
+    let delta = Coordinate(y: a.y - b.y, x: a.x - b.x)
+    let negDelta = Coordinate(y: -delta.y, x: -delta.x)
+    processCoordPairDirection(extended ? a : b, delta, &antiNodes, extended)
+    processCoordPairDirection(extended ? b : a, negDelta, &antiNodes, extended)
+  }
+  
+  func countAntiNodes(extended: Bool) -> Int {
+    var antiNodes : Set<Coordinate> = []
+    for coords in inputData.values {
+      for i in 0..<(coords.count - 1) {
+        for j in (i+1)..<coords.count {
+          processCoordPair(a: coords[i], b: coords[j], antiNodes: &antiNodes, extended: extended)
         }
       }
     }
-    return antiNodeGrid.count
+    return antiNodes.count
   }
 
+  func part1() -> Int {
+    return countAntiNodes(extended: false)
+  }
+  
   func part2() -> Int {
-    return 0
+    return countAntiNodes(extended: true)
   }
 }
